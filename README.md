@@ -41,9 +41,8 @@ Add flag `-r <regions>`, where '\<regions\>' are comma-separated values of the r
   - `Green`: No action required.
   - `Yellow`: 4 months or less to plan and update.
   - `Red`: The version is out of support.
-  - `Unknown`: EOS date is not available.
 
-- The resources in "Red" health should be updated as soon as possible to avoid unplanned disruptions. The disruptions are caused by the auto-update that occurs anytime after the EOS dates.
+- You should update the EKS resources in "Red" health as soon as possible to avoid unplanned disruptions. The disruptions are caused by the auto-update that occurs anytime after the EOS dates. You may refer to the [Kubernetes Deprecation Guide](https://kubernetes.io/docs/reference/using-api/deprecation-guide/) to make the necessary changes when upgrading.
 
 ## Updating The Tool
 
