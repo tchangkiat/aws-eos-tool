@@ -8,7 +8,28 @@ Install the following dependencies:
 
 1. git
 2. python
-3. AWS CLI - Need to [set up a default credential using access key ID and secret access key](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-creds)
+3. AWS CLI - Need to [set up a default credential using access key ID and secret access key](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-creds-create)
+
+   - Permissions required in the IAM Policy:
+
+     ```json
+     {
+       "Version": "2012-10-17",
+       "Statement": [
+         {
+           "Sid": "eks-eos-tool",
+           "Effect": "Allow",
+           "Action": [
+             "eks:DescribeNodegroup",
+             "eks:ListNodegroups",
+             "eks:DescribeCluster",
+             "eks:ListClusters"
+           ],
+           "Resource": "*"
+         }
+       ]
+     }
+     ```
 
 ## Setup
 
