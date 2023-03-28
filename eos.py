@@ -8,7 +8,7 @@ import sys
 import logging
 import time
 import json
-import subprocess
+import boto3
 import pandas as pd
 
 config = json.load(open("config.json"))
@@ -44,8 +44,9 @@ def main(args=None):
     parser.add_argument("-r", "--regions", help="Comma-separated list of regions", nargs="?", dest="regions", default=None)
     args = parser.parse_args(args)
 
-    run('aws configure set output json')
-    account = run('aws sts get-caller-identity --query "Account" --output text')
+    sts = boto3.client('sts')
+    sts.get_caller_identity()["Account"]
+    account = sts.get_caller_identity()["Account"]
 
     regions = config["awsRegions"]
     if args.regions:
@@ -59,10 +60,6 @@ def main(args=None):
 # --------------------
 # Functions - General
 # --------------------
-
-def run(command):
-    return subprocess.check_output([command], shell=True, stderr=subprocess.STDOUT).rstrip().decode('utf-8')
-    
 
 def consolidate_data(name, accounts, regions):
     start_time = time.time() # Track time elapsed
@@ -103,7 +100,8 @@ def consolidate_data_by_region(dataframe, accounts, region):
         executor.map(partial(consolidate_data_by_account, dataframe, region), accounts)
         
 def consolidate_data_by_account(dataframe, region, account):
-    eks_populate_cluster_details(account, region, dataframe)
+    eks = boto3.client('eks', region_name=region)
+    eks_populate_cluster_details(eks, account, region, dataframe)
 
 def days_to_eos(eos_date_str):
     eos_date = format_date(eos_date_str, False)
@@ -167,16 +165,14 @@ def eks_get_eos_date(version):
             return rec["eos"]
     return "Not available"
 
-def eks_populate_cluster_details(account, region, dataframe):
-    logger.info("Retrieving EKS clusters for "  + account + " in " + region)
+def eks_populate_cluster_details(eks, account, region, dataframe):
     try:
-        result = run("aws eks list-clusters --region " + region)
-        clusters = json.loads(result)["clusters"]
+        clusters = eks.list_clusters()["clusters"]
+        logger.info("Retrieving EKS clusters for "  + account + " in " + region)
 
         for cluster in clusters:
             # Populate cluster details
-            result = run("aws eks describe-cluster --name " + cluster)
-            cluster_details = json.loads(result)["cluster"]
+            cluster_details = eks.describe_cluster(name=cluster)["cluster"]
 
             cluster_region = cluster_details["arn"].split(":")[3]
             cluster_insights = []
@@ -186,20 +182,18 @@ def eks_populate_cluster_details(account, region, dataframe):
             add_data(dataframe, account, "EKS", "Cluster", cluster_details["name"], cluster_region, cluster_details["name"], evaluation_result["updateHealth"], "Kubernetes", cluster_details["version"], format_date(cluster_version_eos_date_str), " ".join(cluster_insights))
 
             # Populate nodegroup details
-            eks_populate_nodegroup_details(cluster_details, account, dataframe)
+            eks_populate_nodegroup_details(eks, cluster_details, account, dataframe)
 
     except Exception as e:
-        if e.args[0] == 254:
-            logger.info("Region '" + region + "' is not activated for account '" + account + "'")
+        if e.__class__.__name__ == "ClientError":
+            logger.info("Skipping region '" + region + "' - it is not activated for account '" + account + "'")
             return
         logger.error(e)
 
-def eks_populate_nodegroup_details(cluster_details, account_id_name, dataframe):
-    result = run("aws eks list-nodegroups --cluster-name " + cluster_details["name"])
-    nodegroups = json.loads(result)["nodegroups"]
+def eks_populate_nodegroup_details(eks, cluster_details, account_id_name, dataframe):
+    nodegroups = eks.list_nodegroups(clusterName=cluster_details["name"])["nodegroups"]
     for nodegroup in nodegroups:
-        result = run("aws eks describe-nodegroup --cluster-name " + cluster_details["name"] + " --nodegroup-name " + nodegroup)
-        nodegroup_details = json.loads(result)["nodegroup"]
+        nodegroup_details = eks.describe_nodegroup(clusterName=cluster_details["name"], nodegroupName=nodegroup)["nodegroup"]
         nodegroup_insights = []
         nodegroup_version_eos_date_str = eks_get_eos_date(nodegroup_details["version"])
         evaluation_result = evaluate_eos(nodegroup_version_eos_date_str, nodegroup_details["version"])
@@ -208,10 +202,6 @@ def eks_populate_nodegroup_details(cluster_details, account_id_name, dataframe):
             nodegroup_insights.append("Nodegroup version ({}) should match cluster version ({}) to avoid compatibility issues.".format(nodegroup_details["version"], cluster_details["version"]))
             evaluation_result["updateHealth"] = "Red"
         add_data(dataframe, account_id_name, "EKS", "Nodegroup", nodegroup_details["nodegroupName"], cluster_details["arn"].split(":")[3], nodegroup_details["clusterName"], evaluation_result["updateHealth"], "Kubernetes", nodegroup_details["version"], format_date(nodegroup_version_eos_date_str), " ".join(nodegroup_insights))
-
-def eks_get_latest_versions():
-    eks_eos = eos["eks"]
-    return eks_eos[len(eks_eos)-1]
 
 
 ########################################################################################

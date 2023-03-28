@@ -4,9 +4,11 @@ A data consolidation tool that provides insights of AWS EKS resources reaching e
 
 ## Prerequisites
 
-1. AWS CLI
-2. git
-3. python
+Install the following dependencies:
+
+1. git
+2. python
+3. AWS CLI - Need to [set up a default credential using access key ID and secret access key](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-creds)
 
 ## Setup
 
