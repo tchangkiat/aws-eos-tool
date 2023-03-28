@@ -44,6 +44,7 @@ def main(args=None):
     parser.add_argument("-r", "--regions", help="Comma-separated list of regions", nargs="?", dest="regions", default=None)
     args = parser.parse_args(args)
 
+    run('aws configure set output json')
     account = run('aws sts get-caller-identity --query "Account" --output text')
 
     regions = config["awsRegions"]
@@ -185,18 +186,20 @@ def eks_populate_cluster_details(account, region, dataframe):
             add_data(dataframe, account, "EKS", "Cluster", cluster_details["name"], cluster_region, cluster_details["name"], evaluation_result["updateHealth"], "Kubernetes", cluster_details["version"], format_date(cluster_version_eos_date_str), " ".join(cluster_insights))
 
             # Populate nodegroup details
-            # eks_populate_nodegroup_details(eks, cluster_details, account_id_name, dataframe)
+            eks_populate_nodegroup_details(cluster_details, account, dataframe)
 
     except Exception as e:
         if e.args[0] == 254:
-            logger.error("Region '" + region + "' is not activated for account '" + account + "'")
+            logger.info("Region '" + region + "' is not activated for account '" + account + "'")
             return
         logger.error(e)
 
-def eks_populate_nodegroup_details(eks, cluster_details, account_id_name, dataframe):
-    nodegroups = eks.list_nodegroups(cluster_details["name"])["nodegroups"]
+def eks_populate_nodegroup_details(cluster_details, account_id_name, dataframe):
+    result = run("aws eks list-nodegroups --cluster-name " + cluster_details["name"])
+    nodegroups = json.loads(result)["nodegroups"]
     for nodegroup in nodegroups:
-        nodegroup_details = eks.describe_nodegroup(cluster_details["name"], nodegroup)["nodegroup"]
+        result = run("aws eks describe-nodegroup --cluster-name " + cluster_details["name"] + " --nodegroup-name " + nodegroup)
+        nodegroup_details = json.loads(result)["nodegroup"]
         nodegroup_insights = []
         nodegroup_version_eos_date_str = eks_get_eos_date(nodegroup_details["version"])
         evaluation_result = evaluate_eos(nodegroup_version_eos_date_str, nodegroup_details["version"])
