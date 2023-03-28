@@ -43,9 +43,7 @@ Add flag `-r <regions>`, where '\<regions\>' are comma-separated values of the r
   - `Red`: The version is out of support.
   - `Unknown`: EOS date is not available.
 
-- You can filter by 'Red' and highlight the need to update those resources promptly.
-
-- If the EOS dates are "Not available", they are not released in the official documentations yet (see [References](#references)).
+- The resources in "Red" health should be updated as soon as possible to avoid unplanned disruptions. The disruptions are caused by the auto-update that occurs anytime after the EOS dates.
 
 ## Updating The Tool
 

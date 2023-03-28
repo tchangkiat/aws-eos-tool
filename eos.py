@@ -168,7 +168,7 @@ def eks_get_eos_date(version):
 def eks_populate_cluster_details(eks, account, region, dataframe):
     try:
         clusters = eks.list_clusters()["clusters"]
-        logger.info("Retrieving EKS clusters for "  + account + " in " + region)
+        logger.info("Retrieving EKS resources for "  + account + " in " + region)
 
         for cluster in clusters:
             # Populate cluster details
