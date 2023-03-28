@@ -24,18 +24,13 @@ A data consolidation tool that provides insights of AWS EKS resources reaching e
    - MacOS: `source eks-eos/bin/activate`
    - Windows: `eks-eos\Scripts\activate`
 
-2. Select one of the following options to run the tool.
-
-   - Using payer account IDs: `python eos.py -p <payer account IDs>`
-   - Using account IDs: `python eos.py -a <account IDs>`
-
-   If you are using multiple account IDs, separate them by commas. E.g. `python eos.py -p 000000000000,111111111111`
+2. Run the tool using an account ID: `python eos.py`
 
 3. The generated spreadsheets are located in the "output" folder.
 
 ### Retrieve metadata from selected regions
 
-Add flag `-r <regions>`, where '\<regions\>' are comma-separated values of the regions. E.g. `python eos.py -p 000000000000 -r ap-southeast-1,us-east-1`
+Add flag `-r <regions>`, where '\<regions\>' are comma-separated values of the regions. E.g. `python eos.py -r ap-southeast-1,us-east-1`
 
 ## Using The Data
 
