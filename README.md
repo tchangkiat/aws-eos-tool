@@ -1,4 +1,4 @@
-# EKS End-of-Support
+# Amazon EKS End-of-Support Tool
 
 A data consolidation tool that provides insights of AWS EKS resources reaching end-of-support.
 
@@ -16,11 +16,6 @@ A data consolidation tool that provides insights of AWS EKS resources reaching e
 
    - MacOS: `sh setup.sh`
    - Windows: `.\setup.bat`
-
-3. Run the following commands to activate virtualenv.
-
-   - MacOS: `source eks-eos/bin/activate`
-   - Windows: `eks-eos\Scripts\activate`
 
 ## Usage
 
