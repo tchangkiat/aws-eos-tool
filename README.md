@@ -8,28 +8,7 @@ Install the following dependencies:
 
 1. git
 2. python
-3. AWS CLI - Need to [set up an IAM user with access key ID and secret access key](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-creds-create)
-
-   - Permissions required in the IAM Policy:
-
-     ```json
-     {
-       "Version": "2012-10-17",
-       "Statement": [
-         {
-           "Sid": "eks-eos-tool",
-           "Effect": "Allow",
-           "Action": [
-             "eks:DescribeNodegroup",
-             "eks:ListNodegroups",
-             "eks:DescribeCluster",
-             "eks:ListClusters"
-           ],
-           "Resource": "*"
-         }
-       ]
-     }
-     ```
+3. AWS CLI
 
 ## Setup
 
@@ -40,10 +19,32 @@ Install the following dependencies:
    - MacOS: `sh setup.sh`
    - Windows: `.\setup.bat`
 
-3. Replace the respective values in \<\> and run the commands:
+3. Ensure that you have an existing / created a new IAM user with programmetic access. Generate an access key ID and secret access key for that user. The user should have the following permissions:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "eks-eos-tool",
+      "Effect": "Allow",
+      "Action": [
+        "eks:DescribeNodegroup",
+        "eks:ListNodegroups",
+        "eks:DescribeCluster",
+        "eks:ListClusters"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+4. Replace the respective values in \<\> and run the commands:
 
 ```
 aws configure set aws_access_key_id <access-key-id> --profile eks-eos
+
 aws configure set aws_secret_access_key <secret-access-key> --profile eks-eos
 ```
 
