@@ -8,7 +8,7 @@ Install the following dependencies:
 
 1. git
 2. python
-3. AWS CLI - Need to [set up a default credential using access key ID and secret access key](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-creds-create)
+3. AWS CLI - Need to [set up an IAM user with access key ID and secret access key](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-creds-create)
 
    - Permissions required in the IAM Policy:
 
@@ -39,6 +39,13 @@ Install the following dependencies:
 
    - MacOS: `sh setup.sh`
    - Windows: `.\setup.bat`
+
+3. Replace the respective values in \<\> and run the commands:
+
+```
+aws configure set aws_access_key_id <access-key-id> --profile eks-eos
+aws configure set aws_secret_access_key <secret-access-key> --profile eks-eos
+```
 
 ## Usage
 

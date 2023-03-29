@@ -33,6 +33,8 @@ formatter = logging.Formatter('[%(asctime)s] %(message)s', '%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
+session = boto3.Session(profile_name="eks-eos")
+
 def main(args=None):
     # Clear the console screen
     if "win32" in sys.platform:
@@ -44,7 +46,7 @@ def main(args=None):
     parser.add_argument("-r", "--regions", help="Comma-separated list of regions", nargs="?", dest="regions", default=None)
     args = parser.parse_args(args)
 
-    sts = boto3.client('sts')
+    sts = session.client('sts')
     sts.get_caller_identity()["Account"]
     account = sts.get_caller_identity()["Account"]
 
@@ -100,7 +102,7 @@ def consolidate_data_by_region(dataframe, accounts, region):
         executor.map(partial(consolidate_data_by_account, dataframe, region), accounts)
         
 def consolidate_data_by_account(dataframe, region, account):
-    eks = boto3.client('eks', region_name=region)
+    eks = session.client('eks', region_name=region)
     eks_populate_cluster_details(eks, account, region, dataframe)
 
 def days_to_eos(eos_date_str):
