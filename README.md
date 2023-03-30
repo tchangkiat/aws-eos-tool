@@ -40,7 +40,7 @@ Install the following dependencies:
 }
 ```
 
-4. Replace the respective values in \<\> and run the commands:
+4. Replace the respective values in \<\> and run the commands to configure the AWS credentials:
 
 ```
 aws configure set aws_access_key_id <access-key-id> --profile eks-eos
@@ -58,6 +58,16 @@ aws configure set aws_secret_access_key <secret-access-key> --profile eks-eos
 2. Run the tool using an account ID: `python eos.py`
 
 3. The generated spreadsheets are located in the "output" folder.
+
+### Running the tool for another AWS account
+
+Re-configure the AWS credentials with the following commands, using the access key id and secret access key of an IAM user of that account. Subsequently, just re-run step #2 (or step #1-2 if the virtual environment was not activated).
+
+```
+aws configure set aws_access_key_id <access-key-id> --profile eks-eos
+
+aws configure set aws_secret_access_key <secret-access-key> --profile eks-eos
+```
 
 ### Retrieve metadata from selected regions
 
