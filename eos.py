@@ -6,6 +6,7 @@ from functools import partial
 import os
 import sys
 import logging
+import datetime
 import time
 import json
 import boto3
@@ -50,11 +51,14 @@ def main(args=None):
     sts.get_caller_identity()["Account"]
     account = sts.get_caller_identity()["Account"]
 
-    regions = config["awsRegions"]
+    regions = []
     if args.regions:
         r = args.regions.split(",")
         if len(r) > 0:
             regions = r
+    else:
+        ec2 = session.client("ec2", region_name="us-east-1")
+        regions = [r["RegionName"] for r in ec2.describe_regions(AllRegions=False)["Regions"]]
 
     consolidate_data(account, [account], regions)
     logger.info("")
@@ -88,7 +92,7 @@ def consolidate_data(name, accounts, regions):
     # Storing data in an Excel spreadsheet
     # --------------------------------------------------------------------------------
     Path("output").mkdir(parents=True, exist_ok=True)
-    df.reset_index(drop=True).style.applymap(highlight_update_health, subset=["Update Health"]).to_excel(output_file_path, sheet_name="EOS", index=False)
+    df.reset_index(drop=True).style.applymap(highlight_update_health, subset=["Update Health"]).to_excel(output_file_path, sheet_name=datetime.datetime.now().strftime("%Y%m%d.%H%M"), index=False)
     end_time = time.time()
 
     logger.info("-")
