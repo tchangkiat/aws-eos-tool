@@ -29,6 +29,7 @@ Install the following dependencies:
       "Sid": "eks-eos-tool",
       "Effect": "Allow",
       "Action": [
+        "ec2:DescribeRegions",
         "eks:DescribeNodegroup",
         "eks:ListNodegroups",
         "eks:DescribeCluster",
