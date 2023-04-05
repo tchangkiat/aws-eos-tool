@@ -77,7 +77,7 @@ def consolidate_data(name, accounts, regions):
         "Resource Type": [],
         "Resource Name": [],
         "Regions / AZs": [],
-        "Cluster": [],
+        "Group": [],
         "Update Health": [],
         "Engine": [],
         "Version": [],
@@ -92,6 +92,7 @@ def consolidate_data(name, accounts, regions):
     # Storing data in an Excel spreadsheet
     # --------------------------------------------------------------------------------
     Path("output").mkdir(parents=True, exist_ok=True)
+    df.sort_values(['Group', 'Resource Type'],ascending = [True, True])
     df.reset_index(drop=True).style.applymap(highlight_update_health, subset=["Update Health"]).to_excel(output_file_path, sheet_name=datetime.datetime.now().strftime("%Y%m%d.%H%M"), index=False)
     end_time = time.time()
 
@@ -147,8 +148,8 @@ def format_date(str_date, str_format=True):
     else:
         return str_date
 
-def add_data(dataframe, account, service, resource_type, resource_name, regions_azs, cluster, updateHealth, engine, version, eos, insights):
-    dataframe.loc[len(dataframe.index)] = [account, service, resource_type, resource_name, regions_azs, cluster, updateHealth, engine, version, eos, insights]
+def add_data(dataframe, account, service, resource_type, resource_name, regions_azs, group, updateHealth, engine, version, eos, insights):
+    dataframe.loc[len(dataframe.index)] = [account, service, resource_type, resource_name, regions_azs, group, updateHealth, engine, version, eos, insights]
 
 def highlight_update_health(val):
     color = "transparent"
