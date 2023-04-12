@@ -34,7 +34,7 @@ formatter = logging.Formatter('[%(asctime)s] %(message)s', '%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
-session = boto3.Session(profile_name="eks-eos")
+session = boto3.Session(profile_name="eos-tool")
 
 def main(args=None):
     # Clear the console screen

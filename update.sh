@@ -1,5 +1,5 @@
 git pull
 
-source eks-eos/bin/activate
+source eos-tool/bin/activate
 
 python -m pip install -r requirements.txt

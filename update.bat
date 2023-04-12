@@ -1,3 +1,3 @@
 git pull
 
-eks-eos\Scripts\python.exe -m pip install -r requirements.txt
+eos-tool\Scripts\python.exe -m pip install -r requirements.txt

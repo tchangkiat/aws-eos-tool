@@ -6,8 +6,8 @@ python -m pip install --user virtualenv
 
 echo Creating virtual environment...
 
-python -m virtualenv eks-eos -p python
+python -m virtualenv eos-tool -p python
 
 echo Installing dependencies...
-eks-eos\Scripts\python.exe -m pip install --upgrade pip
-eks-eos\Scripts\python.exe -m pip install -r requirements.txt
+eos-tool\Scripts\python.exe -m pip install --upgrade pip
+eos-tool\Scripts\python.exe -m pip install -r requirements.txt

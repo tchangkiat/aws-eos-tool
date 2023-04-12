@@ -6,24 +6,24 @@ then
 fi
 
 echo Creating virtual environment...
-virtualenv eks-eos -p python3
+virtualenv eos-tool -p python3
 
-echo Virtual environment created at `pwd`/eks-eos
+echo Virtual environment created at `pwd`/eos-tool
 
-echo Activating virtual environment with 'source `pwd`/eks-eos/bin/activate'
+echo Activating virtual environment with 'source `pwd`/eos-tool/bin/activate'
 
 echo "OS is $OSTYPE";
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    set SCRIPTPATH=eks-eos/bin
+    set SCRIPTPATH=eos-tool/bin
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-    export SCRIPTPATH=eks-eos/bin
+    export SCRIPTPATH=eos-tool/bin
 elif [[ "$OSTYPE" == "cygwin" ]]; then
-    export SCRIPTPATH=eks-eos/Scripts
+    export SCRIPTPATH=eos-tool/Scripts
 elif [[ "$OSTYPE" == "msys" ]]; then
-    export SCRIPTPATH=eks-eos/Scripts
+    export SCRIPTPATH=eos-tool/Scripts
 elif [[ "$OSTYPE" == "win32" ]]; then
-    export SCRIPTPATH=eks-eos/Scripts
+    export SCRIPTPATH=eos-tool/Scripts
 else
     echo "Couldn't find activate script.";
     exit 1;
