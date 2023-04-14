@@ -91,7 +91,7 @@ def consolidate_data(name, accounts, regions):
     })
     
     with ThreadPoolExecutor() as executor:
-        executor.map(partial(consolidate_data_by_region, df, accounts), regions)
+        executor.map(partial(consolidate_data_by_account, df, regions), accounts)
     
     # --------------------------------------------------------------------------------
     # Storing data in an Excel spreadsheet
@@ -107,11 +107,11 @@ def consolidate_data(name, accounts, regions):
     logger.info("--------------------------------------------------")
     logger.info("")
 
-def consolidate_data_by_region(dataframe, accounts, region):
+def consolidate_data_by_account(dataframe, regions, account):
     with ThreadPoolExecutor() as executor:
-        executor.map(partial(consolidate_data_by_account, dataframe, region), accounts)
+        executor.map(partial(consolidate_data_by_region, dataframe, account), regions)
         
-def consolidate_data_by_account(dataframe, region, account):
+def consolidate_data_by_region(dataframe, account, region):
     try:
         eks_populate_cluster_details(account, region, dataframe)
     except Exception as e:
