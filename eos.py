@@ -11,6 +11,7 @@ import time
 import json
 import boto3
 import pandas as pd
+import traceback
 
 config = json.load(open("config.json"))
 eos = json.load(open("eos.json"))
@@ -28,11 +29,15 @@ sh.setLevel(logging.INFO)
 formatter = logging.Formatter('%(message)s')
 sh.setFormatter(formatter)
 logger.addHandler(sh)
+
+err_logger = logging.getLogger("error")
+err_logger.setLevel(logging.ERROR)
+err_logger.propagate = False
 fh = logging.FileHandler("error.log")
 fh.setLevel(logging.ERROR)
 formatter = logging.Formatter('[%(asctime)s] %(message)s', '%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)
-logger.addHandler(fh)
+err_logger.addHandler(fh)
 
 session = boto3.Session(profile_name="eos-tool")
 
@@ -107,8 +112,11 @@ def consolidate_data_by_region(dataframe, accounts, region):
         executor.map(partial(consolidate_data_by_account, dataframe, region), accounts)
         
 def consolidate_data_by_account(dataframe, region, account):
-    eks = session.client('eks', region_name=region)
-    eks_populate_cluster_details(eks, account, region, dataframe)
+    try:
+        eks_populate_cluster_details(account, region, dataframe)
+    except Exception as e:
+        logger.error("<" + e.__class__.__name__ + "> " + e.args[0])
+        err_logger.error(traceback.format_exc())
 
 def days_to_eos(eos_date_str):
     eos_date = format_date(eos_date_str, False)
@@ -117,7 +125,20 @@ def days_to_eos(eos_date_str):
         return (eos_date - today).days
     return None
 
-def evaluate_eos(str_date, version):
+def evaluate_eos(str_date, service = ""):
+    red_message = "Out of support."
+    yellow_message = ""
+
+    if service == "lambda":
+        red_message += " Update this resource to enjoy improved security posture, stability, and new features."
+        yellow_message = " Update this resource before the EOS date to enjoy improved security posture, stability, and new features."
+    else:
+        red_message += " Update this resource to avoid unplanned disruption, and enjoy improved security posture, stability, and new features."
+        yellow_message = " Update this resource to avoid unplanned disruption after the EOS date, and enjoy improved security posture, stability, and new features."
+
+    if str_date == "EOS":
+        return {"updateHealth": "Red", "message": red_message}
+
     days = days_to_eos(str_date)
     
     if days is None:
@@ -126,12 +147,12 @@ def evaluate_eos(str_date, version):
     if days >= 0:
         message = "EOS in {} days.".format(days)
         if days <= 122:
-            return {"updateHealth": "Yellow", "message": message + " Update this resource to avoid unplanned disruption after the EOS date."}
+            return {"updateHealth": "Yellow", "message": message + yellow_message}
         else:
             return {"updateHealth": "Green", "message": message + " No action required."}
     else:
-        return {"updateHealth": "Red", "message": "Out of support. Update this resource to avoid unplanned disruption."}
-
+        return {"updateHealth": "Red", "message": red_message}
+    
 def format_date(str_date, str_format=True):
     date_segments = str_date.split("/")
     month = config["month"]
@@ -172,30 +193,26 @@ def eks_get_eos_date(version):
             return rec["eos"]
     return "Not available"
 
-def eks_populate_cluster_details(eks, account, region, dataframe):
-    try:
-        clusters = eks.list_clusters()["clusters"]
-        logger.info("Retrieving EKS resources for "  + account + " in " + region)
+def eks_populate_cluster_details(account, region, dataframe):
+    eks = session.client('eks', region_name=region)
 
-        for cluster in clusters:
-            # Populate cluster details
-            cluster_details = eks.describe_cluster(name=cluster)["cluster"]
+    clusters = eks.list_clusters()["clusters"]
+    logger.info("Retrieving EKS resources for "  + account + " in " + region)
 
-            cluster_region = cluster_details["arn"].split(":")[3]
-            cluster_insights = []
-            cluster_version_eos_date_str = eks_get_eos_date(cluster_details["version"])
-            evaluation_result = evaluate_eos(cluster_version_eos_date_str, cluster_details["version"])
-            cluster_insights.append(evaluation_result["message"])
-            add_data(dataframe, account, "EKS", "Cluster", cluster_details["name"], cluster_region, cluster_details["name"], evaluation_result["updateHealth"], "Kubernetes", cluster_details["version"], format_date(cluster_version_eos_date_str), " ".join(cluster_insights))
+    for cluster in clusters:
+        # Populate cluster details
+        cluster_details = eks.describe_cluster(name=cluster)["cluster"]
 
-            # Populate nodegroup details
-            eks_populate_nodegroup_details(eks, cluster_details, account, dataframe)
+        cluster_region = cluster_details["arn"].split(":")[3]
+        cluster_insights = []
+        cluster_version_eos_date_str = eks_get_eos_date(cluster_details["version"])
+        evaluation_result = evaluate_eos(cluster_version_eos_date_str, cluster_details["version"])
+        cluster_insights.append(evaluation_result["message"])
+        add_data(dataframe, account, "EKS", "Cluster", cluster_details["name"], cluster_region, cluster_details["name"], evaluation_result["updateHealth"], "Kubernetes", cluster_details["version"], format_date(cluster_version_eos_date_str), " ".join(cluster_insights))
 
-    except Exception as e:
-        if e.__class__.__name__ == "ClientError":
-            logger.info("Skipping region '" + region + "' - it is not activated for account '" + account + "'")
-            return
-        logger.error(e)
+        # Populate nodegroup details
+        eks_populate_nodegroup_details(eks, cluster_details, account, dataframe)
+
 
 def eks_populate_nodegroup_details(eks, cluster_details, account_id_name, dataframe):
     nodegroups = eks.list_nodegroups(clusterName=cluster_details["name"])["nodegroups"]
