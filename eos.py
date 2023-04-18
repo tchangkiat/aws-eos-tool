@@ -48,7 +48,7 @@ def main(args=None):
     else:
         _ = os.system("clear") 
 
-    parser = ArgumentParser(description="Amazon EKS End-of-Support (EOS) Tool")
+    parser = ArgumentParser(description="End-of-Support (EOS) Tool for AWS resources")
     parser.add_argument("-r", "--regions", help="Comma-separated list of regions", nargs="?", dest="regions", default=None)
     args = parser.parse_args(args)
 
@@ -80,6 +80,7 @@ def consolidate_data(name, accounts, regions):
         "Account": [],
         "Service": [],
         "Resource Type": [],
+        "Resource ARN": [],
         "Resource Name": [],
         "Regions / AZs": [],
         "Group": [],
@@ -97,7 +98,7 @@ def consolidate_data(name, accounts, regions):
     # Storing data in an Excel spreadsheet
     # --------------------------------------------------------------------------------
     Path("output").mkdir(parents=True, exist_ok=True)
-    df.sort_values(['Group', 'Resource Type'],ascending = [True, True])
+    df = df.sort_values(["Service", "Group", "Resource Type"], ascending = [True, True, True])
     df.reset_index(drop=True).style.applymap(highlight_update_health, subset=["Update Health"]).to_excel(output_file_path, sheet_name=datetime.datetime.now().strftime("%Y%m%d.%H%M"), index=False)
     end_time = time.time()
 
@@ -108,12 +109,15 @@ def consolidate_data(name, accounts, regions):
     logger.info("")
 
 def consolidate_data_by_account(dataframe, regions, account):
+    logger.info("Retrieving resource metadata for "  + account + " in " + str(len(regions)) + " regions")
     with ThreadPoolExecutor() as executor:
         executor.map(partial(consolidate_data_by_region, dataframe, account), regions)
         
 def consolidate_data_by_region(dataframe, account, region):
     try:
         eks_populate_cluster_details(account, region, dataframe)
+
+        rds_populate_instance_details(account, region, dataframe)
     except Exception as e:
         logger.error("<" + e.__class__.__name__ + "> " + e.args[0])
         err_logger.error(traceback.format_exc())
@@ -149,7 +153,7 @@ def evaluate_eos(str_date, service = ""):
         if days <= 122:
             return {"updateHealth": "Yellow", "message": message + yellow_message}
         else:
-            return {"updateHealth": "Green", "message": message + " No action required."}
+            return {"updateHealth": "Green", "message": message}
     else:
         return {"updateHealth": "Red", "message": red_message}
     
@@ -169,8 +173,8 @@ def format_date(str_date, str_format=True):
     else:
         return str_date
 
-def add_data(dataframe, account, service, resource_type, resource_name, regions_azs, group, updateHealth, engine, version, eos, insights):
-    dataframe.loc[len(dataframe.index)] = [account, service, resource_type, resource_name, regions_azs, group, updateHealth, engine, version, eos, insights]
+def add_data(dataframe, account, service, resource_type, resource_arn, resource_name, regions_azs, group, updateHealth, engine, version, eos, insights):
+    dataframe.loc[len(dataframe.index)] = [account, service, resource_type, resource_arn, resource_name, regions_azs, group, updateHealth, engine, version, eos, insights]
 
 def highlight_update_health(val):
     color = "transparent"
@@ -197,7 +201,6 @@ def eks_populate_cluster_details(account, region, dataframe):
     eks = session.client('eks', region_name=region)
 
     clusters = eks.list_clusters()["clusters"]
-    logger.info("Retrieving EKS resources for "  + account + " in " + region)
 
     for cluster in clusters:
         # Populate cluster details
@@ -208,7 +211,7 @@ def eks_populate_cluster_details(account, region, dataframe):
         cluster_version_eos_date_str = eks_get_eos_date(cluster_details["version"])
         evaluation_result = evaluate_eos(cluster_version_eos_date_str, cluster_details["version"])
         cluster_insights.append(evaluation_result["message"])
-        add_data(dataframe, account, "EKS", "Cluster", cluster_details["name"], cluster_region, cluster_details["name"], evaluation_result["updateHealth"], "Kubernetes", cluster_details["version"], format_date(cluster_version_eos_date_str), " ".join(cluster_insights))
+        add_data(dataframe, account, "EKS", "Cluster", cluster_details["arn"], cluster_details["name"], cluster_region, cluster_details["name"], evaluation_result["updateHealth"], "Kubernetes", cluster_details["version"], format_date(cluster_version_eos_date_str), " ".join(cluster_insights))
 
         # Populate nodegroup details
         eks_populate_nodegroup_details(eks, cluster_details, account, dataframe)
@@ -225,8 +228,53 @@ def eks_populate_nodegroup_details(eks, cluster_details, account_id_name, datafr
         if nodegroup_details["version"] != cluster_details["version"]:
             nodegroup_insights.append("Nodegroup version ({}) should match cluster version ({}) to avoid compatibility issues.".format(nodegroup_details["version"], cluster_details["version"]))
             evaluation_result["updateHealth"] = "Red"
-        add_data(dataframe, account_id_name, "EKS", "Nodegroup", nodegroup_details["nodegroupName"], cluster_details["arn"].split(":")[3], nodegroup_details["clusterName"], evaluation_result["updateHealth"], "Kubernetes", nodegroup_details["version"], format_date(nodegroup_version_eos_date_str), " ".join(nodegroup_insights))
+        add_data(dataframe, account_id_name, "EKS", "Nodegroup", nodegroup_details["nodegroupArn"], nodegroup_details["nodegroupName"], cluster_details["arn"].split(":")[3], nodegroup_details["clusterName"], evaluation_result["updateHealth"], "Kubernetes", nodegroup_details["version"], format_date(nodegroup_version_eos_date_str), " ".join(nodegroup_insights))
 
+# --------------------
+# Functions - RDS
+# --------------------
+
+def rds_get_eos_date(engine, version):
+    rds_eos = []
+    if "sqlserver" in engine:
+        rds_eos = eos["rds"]["sqlserver"]
+    else:
+        rds_eos = eos["rds"][engine]
+
+    for rec in rds_eos:
+        if rec["version"] in version:
+            return rec["eos"]
+    return "Not available"
+
+def rds_populate_instance_details(account, region, dataframe):
+    rds = session.client('rds', region_name=region) 
+
+    db_clusters = rds.describe_db_clusters()['DBClusters']
+    for cluster in db_clusters:
+        cluster_version_eos_date_str = rds_get_eos_date(cluster["Engine"], cluster["EngineVersion"])
+        evaluation_result = evaluate_eos(cluster_version_eos_date_str, cluster["EngineVersion"])
+        cluster_azs = ", ".join(cluster["AvailabilityZones"])
+        service = "RDS"
+        if cluster["Engine"] == "neptune":
+            service = "Neptune"
+        elif cluster["Engine"] == "docdb":
+            service = "DocumentDB"
+        add_data(dataframe, account, service, "Cluster", cluster["DBClusterArn"], cluster["DBClusterIdentifier"], cluster_azs, cluster["DBClusterIdentifier"], evaluation_result["updateHealth"], cluster["Engine"], cluster["EngineVersion"], format_date(cluster_version_eos_date_str), evaluation_result["message"])
+    
+    db_instances = rds.describe_db_instances()['DBInstances']
+    for db in db_instances:
+        instance_version_eos_date_str = rds_get_eos_date(db["Engine"], db["EngineVersion"])
+        evaluation_result = evaluate_eos(instance_version_eos_date_str)
+        db_azs = db["AvailabilityZone"]
+        service = "RDS"
+        if db["Engine"] == "neptune":
+            service = "Neptune"
+        elif db["Engine"] == "docdb":
+            service = "DocumentDB"
+        group = "-"
+        if "DBClusterIdentifier" in db:
+            group = db["DBClusterIdentifier"]
+        add_data(dataframe, account, service, "Instance", db["DBInstanceArn"], db["DBInstanceIdentifier"], db_azs, group, evaluation_result["updateHealth"], db["Engine"], db["EngineVersion"], format_date(instance_version_eos_date_str), evaluation_result["message"])
 
 ########################################################################################
 

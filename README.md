@@ -33,7 +33,9 @@ Install the following dependencies:
         "eks:DescribeNodegroup",
         "eks:ListNodegroups",
         "eks:DescribeCluster",
-        "eks:ListClusters"
+        "eks:ListClusters",
+        "rds:DescribeDBClusters",
+        "rds:DescribeDBInstances"
       ],
       "Resource": "*"
     }
@@ -94,8 +96,18 @@ Add flag `-r <regions>`, where '\<regions\>' are comma-separated values of the r
 ## Supported Services
 
 - Amazon EKS
+- Amazon RDS
+  - Supported engines: MariaDB, Microsoft SQL Server, MySQL, Oracle, PostgreSQL, Aurora (MySQL and PostgreSQL)
+- Amazon Neptune
 
 ## References
 
 1. [EKS v1.20 and above](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html#kubernetes-release-calendar)
 2. [EKS v1.18 and v1.19](https://endoflife.date/amazon-eks)
+3. [RDS - MariaDB](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MariaDB.Concepts.VersionMgmt.html#MariaDB.Concepts.VersionMgmt.Supported)
+4. [RDS - Microsoft SQL](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_SQLServer.html#SQLServer.Concepts.General.Deprecated-Versions)
+5. [RDS - MySQL](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MySQL.Concepts.VersionMgmt.html#MySQL.Concepts.VersionMgmt.Supported)
+6. [RDS - Oracle](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.Oracle.Overview.html#Aurora.VersionPolicy.MajorVersionLifetime)
+7. [RDS - PostgreSQL](https://docs.aws.amazon.com/AmazonRDS/latest/PostgreSQLReleaseNotes/postgresql-release-calendar.html#PostgreSQL.Concepts.VersionMgmt.Supported)
+8. [RDS - Aurora](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.VersionPolicy.html#Aurora.VersionPolicy.MajorVersionLifetime)
+9. [Neptune](https://docs.aws.amazon.com/neptune/latest/userguide/engine-releases.html)
