@@ -78,13 +78,14 @@ Add flag `-r <regions>`, where '\<regions\>' are comma-separated values of the r
 
 ## Using The Data
 
-- The "Update Health" column in the spreadsheet helps to prioritize the updates.
+- The "Update Health" column in the spreadsheet helps customers to prioritize the updates.
 
-  - `Green`: No action required.
+  - `Green`: More than 4 months to plan and update.
   - `Yellow`: 4 months or less to plan and update.
   - `Red`: The version is out of support.
+  - `Unknown`: EOS date is not available.
 
-- You should update the resources in "Red" health as soon as possible to avoid unplanned disruptions. The disruptions are caused by the auto-update that occurs anytime after the EOS dates.
+- You should update the resources in `Red` health as soon as possible to avoid unplanned disruptions (caused by auto-update after EOS dates) and enjoy improved security posture, stability, and new features. Subsequently, you can plan ahead and update the resources in `Yellow` health.
 
 ## Updating The Tool
 
