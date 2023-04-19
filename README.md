@@ -2,6 +2,10 @@
 
 A data consolidation tool that provides insights of AWS resources reaching end-of-support.
 
+## ❗Notice
+
+The AWS service teams may update the official documentations anytime and provide EOS dates, that may not be available in the documentations, via email notifications. The EOS dates provided by the tool are based on official documentations (see [References](#references)) and service team's email notifications, and were kept up-to-date on a best effort basis.
+
 ## Prerequisites
 
 Install the following dependencies:
@@ -99,16 +103,16 @@ Add flag `-r <regions>`, where '\<regions\>' are comma-separated values of the r
 - Amazon EKS
 - Amazon RDS
   - Supported engines: MariaDB, Microsoft SQL Server, MySQL, Oracle, PostgreSQL, Aurora (MySQL and PostgreSQL)
+  - Aurora PostgreSQL's EOS dates (11.13, 11.14, 11.15, 12.8, 12.10, 13.4, 13.5, 13.6) were extracted from the service team's email notification.
 - Amazon Neptune
 
 ## References
 
-1. [EKS v1.20 and above](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html#kubernetes-release-calendar)
-2. [EKS v1.18 and v1.19](https://endoflife.date/amazon-eks)
-3. [RDS - MariaDB](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MariaDB.Concepts.VersionMgmt.html#MariaDB.Concepts.VersionMgmt.Supported)
-4. [RDS - Microsoft SQL](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_SQLServer.html#SQLServer.Concepts.General.Deprecated-Versions)
-5. [RDS - MySQL](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MySQL.Concepts.VersionMgmt.html#MySQL.Concepts.VersionMgmt.Supported)
-6. [RDS - Oracle](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.Oracle.Overview.html#Aurora.VersionPolicy.MajorVersionLifetime)
-7. [RDS - PostgreSQL](https://docs.aws.amazon.com/AmazonRDS/latest/PostgreSQLReleaseNotes/postgresql-release-calendar.html#PostgreSQL.Concepts.VersionMgmt.Supported)
-8. [RDS - Aurora](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.VersionPolicy.html#Aurora.VersionPolicy.MajorVersionLifetime)
-9. [Neptune](https://docs.aws.amazon.com/neptune/latest/userguide/engine-releases.html)
+1. [EKS](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html#kubernetes-release-calendar)
+2. [RDS - MariaDB](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MariaDB.Concepts.VersionMgmt.html#MariaDB.Concepts.VersionMgmt.Supported)
+3. [RDS - Microsoft SQL](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_SQLServer.html#SQLServer.Concepts.General.Deprecated-Versions)
+4. [RDS - MySQL](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MySQL.Concepts.VersionMgmt.html#MySQL.Concepts.VersionMgmt.Supported)
+5. [RDS - Oracle](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.Oracle.Overview.html#Aurora.VersionPolicy.MajorVersionLifetime)
+6. [RDS - PostgreSQL](https://docs.aws.amazon.com/AmazonRDS/latest/PostgreSQLReleaseNotes/postgresql-release-calendar.html#PostgreSQL.Concepts.VersionMgmt.Supported)
+7. [RDS - Aurora](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.VersionPolicy.html#Aurora.VersionPolicy.MajorVersionLifetime)
+8. [Neptune](https://docs.aws.amazon.com/neptune/latest/userguide/engine-releases.html)
